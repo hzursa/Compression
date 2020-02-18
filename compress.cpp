@@ -52,7 +52,7 @@ void saveCodes(struct HeapNode* root, string str){
         return; 
   
     if (root->data != -999) {
-        cout << root->data << ": " << str << "\n"; 
+        cout << char(root->data) << ": " << str << "\n"; 
         huffmancode[root->data+128] = str;
     }
     saveCodes(root->left, str + "0"); 
@@ -110,43 +110,61 @@ int main(int argc, char *argv[]){
 		cout << "please enter 2 arguments" << endl;
 		return 0;
 	}
-    char ch;
-    ifstream fin(argv[1], ios::binary);
-    ofstream fout(argv[2],ios::out | ios::binary);
-    while (fin.read(&ch, sizeof(ch))) {
-	   //std::cout << int(ch) << std::endl;
-        frequency[int(ch)+128]+=1;
-    }
-
-    fin.close();
-    HuffmanCodes(frequency);
-    cout<<"treetosave: "<<treeCode<<endl;
-    cout<<"length of treecode: "<<treeCode.length()<<endl;
-    fout << setfill('0') << setw(3) << treeCode.length(); //write the length of tree code
-    fout<<treeCode; // write the tree code;
     ifstream fin2(argv[1], ios::binary);
     if (fin2) {
     // get length of file:
-    fin2.seekg (0, fin2.end);
-    int length = fin2.tellg();
-    fin2.seekg (0, fin2.beg);
+    string content="";
+    fin2.seekg(0, std::ios::end);   
+    content.reserve(fin2.tellg());
+    fin2.seekg(0, std::ios::beg);
 
-    char * buffer = new char [length];
+    content.assign((std::istreambuf_iterator<char>(fin2)),
+                    std::istreambuf_iterator<char>());
 
-    std::cout << "Reading " << length << " characters... "<<endl;
-    // read data as a block:
-    fin2.read (buffer,length);
-    string compressStr;
-    cout<<buffer<<endl;
-    for (size_t i = 0; i < length; i++)
-    {
-        compressStr.append(huffmancode[int(buffer[i])+128]);
+
+    std::cout << "Reading " << content.length() << " characters... "<<endl;
+    cout<< content<<endl;
+    cout<<"pushing frequency"<<endl;
+    for (size_t i = 0; i < content.length(); i++)
+    {   
+        char ch = content[i];
+        //std::cout << int(ch) << std::endl;
+        frequency[int(ch)+128]+=1;
     }
-    delete[] buffer;
+    
+    //ifstream fin(argv[1], ios::binary);
+    ofstream fout(argv[2],ios::out | ios::binary);
+    //while (fin.read(&ch, sizeof(ch))) {
+	   //std::cout << int(ch) << std::endl;
+    //    frequency[int(ch)+128]+=1;
+    //}
 
-    cout<<compressStr<<endl;
+    //fin.close();
+    HuffmanCodes(frequency);
+    cout<<"tree to save: "<<treeCode<<endl;
+    cout<<"length of treecode: "<<treeCode.length()<<endl;
+    fout << setfill('0') << setw(3) << treeCode.length(); //write the length of tree code
+    fout<<treeCode; // write the tree code;
+    
+    // read data as a block:
+    string compressStr;
+    //cout<<content<<endl;
+    for (size_t i = 0; i < content.length(); i++)
+    {
+        compressStr.append(huffmancode[int(content[i])+128]);
+    }
+
+
+    cout<<"compressed code: "<<compressStr<<endl;
     int numberofone = 8-compressStr.length()%8;
-    cout<<"number of one that insert"<<numberofone<<endl;
+    if (numberofone != 8){
+        cout<<"number of one that insert: "<<numberofone<<endl;
+        }else
+        {
+            cout<<"number of one that insert: "<<0<<endl;
+        }
+        
+
     fout<<numberofone; //write the number of the extra"1"
     for (size_t i = 0; i < compressStr.length(); i+=8)
 {
@@ -174,16 +192,16 @@ int main(int argc, char *argv[]){
     //    else
     //        byte |= 1 << b;
     //}
-    cout<<"i:"<<i<<endl;
-    cout<<"bits to store :"<<str8<<endl;
+    //cout<<"i:"<<i<<endl;
+    //cout<<"bits to store :"<<str8<<endl;
     fout.put(byte);
-    cout<<"char :"<<byte<<endl;
-}
+    //cout<<"char :"<<byte<<endl;
+}   fout.close();
     }
 
 
     fin2.close();
-    fout.close();
+    
 
     return 0;
 }
